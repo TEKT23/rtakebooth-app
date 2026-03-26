@@ -1,0 +1,15 @@
+# Go
+main
+backend-app/bin
+backend-app/vendor
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project SPECIFIC
+issue.md
