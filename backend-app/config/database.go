@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/TEKT23/rtakebooth-app/backend-app/domain"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -33,4 +34,12 @@ func InitDB() {
 
 	DB = db
 	fmt.Println("Connected to Database")
+
+	// Auto Migration
+	err = db.AutoMigrate(&domain.Session{}, &domain.Photo{})
+	if err != nil {
+		log.Printf("Failed to migrate database: %v", err)
+	} else {
+		fmt.Println("Database Migrated")
+	}
 }

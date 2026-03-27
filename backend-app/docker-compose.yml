@@ -5,10 +5,10 @@ services:
     image: mysql:8.0
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: rtakebooth
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 
     ports:
       - "3306:3306"
     volumes:
