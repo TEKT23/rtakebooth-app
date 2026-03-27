@@ -7,6 +7,7 @@ import (
 	"github.com/TEKT23/rtakebooth-app/backend-app/config"
 	"github.com/TEKT23/rtakebooth-app/backend-app/delivery"
 	"github.com/TEKT23/rtakebooth-app/backend-app/infrastructure/payment"
+	"github.com/TEKT23/rtakebooth-app/backend-app/infrastructure/storage"
 	"github.com/TEKT23/rtakebooth-app/backend-app/repository"
 	"github.com/TEKT23/rtakebooth-app/backend-app/usecase"
 	"github.com/gin-gonic/gin"
@@ -28,8 +29,11 @@ func main() {
 	delivery.NewHealthHandler(r, healthUsecase)
 
 	sessionRepo := repository.NewSessionRepository(config.DB)
+	photoRepo := repository.NewPhotoRepository(config.DB)
 	mockPayment := payment.NewMockPaymentProvider()
-	sessionUsecase := usecase.NewSessionUsecase(sessionRepo, mockPayment)
+	s3Storage := storage.NewS3StorageService()
+
+	sessionUsecase := usecase.NewSessionUsecase(sessionRepo, photoRepo, mockPayment, s3Storage)
 	delivery.NewSessionHandler(r, sessionUsecase)
 
 	// Start Server
