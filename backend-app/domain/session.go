@@ -1,0 +1,23 @@
+package domain
+
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
+
+type Session struct {
+	ID            uint           `gorm:"primaryKey" json:"id"`
+	StatusPayment string         `gorm:"type:varchar(20);default:'pending'" json:"status_payment"`
+	QRUrl         string         `gorm:"type:text" json:"qr_url"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
+	Photos        []Photo        `gorm:"foreignKey:SessionID" json:"photos,omitempty"`
+}
+
+type SessionRepository interface {
+	Create(session *Session) error
+	Update(session *Session) error
+	GetByID(id uint) (*Session, error)
+}
