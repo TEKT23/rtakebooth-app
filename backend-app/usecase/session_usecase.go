@@ -6,6 +6,8 @@ import (
 
 type SessionUsecase interface {
 	CreateSession() (*domain.Session, error)
+	SetPaymentPaid(id uint) error
+	GetSessionStatus(id uint) (string, error)
 }
 
 type sessionUsecase struct {
@@ -47,4 +49,22 @@ func (u *sessionUsecase) CreateSession() (*domain.Session, error) {
 	}
 
 	return session, nil
+}
+
+func (u *sessionUsecase) SetPaymentPaid(id uint) error {
+	session, err := u.repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+
+	session.StatusPayment = "PAID"
+	return u.repo.Update(session)
+}
+
+func (u *sessionUsecase) GetSessionStatus(id uint) (string, error) {
+	session, err := u.repo.GetByID(id)
+	if err != nil {
+		return "", err
+	}
+	return session.StatusPayment, nil
 }
