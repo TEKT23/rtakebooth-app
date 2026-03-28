@@ -113,5 +113,11 @@ func (u *sessionUsecase) UploadSessionPhoto(ctx context.Context, sessionID uint,
 }
 
 func (u *sessionUsecase) GetSessionGallery(sessionID uint) ([]domain.Photo, error) {
+	// Validasi sesi ada
+	_, err := u.repo.GetByID(sessionID)
+	if err != nil {
+		return nil, fmt.Errorf("session not found: %w", err)
+	}
+
 	return u.photoRepo.GetBySessionID(sessionID)
 }
