@@ -15,9 +15,14 @@ import (
 )
 
 func main() {
-	// Load environment variables
-	godotenv.Load()
-
+	// Load environment variables (mencoba di folder saat ini dan folder backend-app jika di-run dari root)
+	err := godotenv.Load()
+	if err != nil {
+		err = godotenv.Load("backend-app/.env")
+		if err != nil {
+			log.Println("Warning: No .env file found. Application will use system environment variables.")
+		}
+	}
 	// Initialize Database
 	config.InitDB()
 
