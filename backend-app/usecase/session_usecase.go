@@ -15,6 +15,7 @@ type SessionUsecase interface {
 	SetPaymentPaid(id uint) error
 	GetSessionStatus(id uint) (string, error)
 	UploadSessionPhoto(ctx context.Context, sessionID uint, file io.Reader, fileType string) (*domain.Photo, error)
+	GetSessionGallery(sessionID uint) ([]domain.Photo, error)
 }
 
 type sessionUsecase struct {
@@ -109,4 +110,8 @@ func (u *sessionUsecase) UploadSessionPhoto(ctx context.Context, sessionID uint,
 	}
 
 	return photo, nil
+}
+
+func (u *sessionUsecase) GetSessionGallery(sessionID uint) ([]domain.Photo, error) {
+	return u.photoRepo.GetBySessionID(sessionID)
 }
