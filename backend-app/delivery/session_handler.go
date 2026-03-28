@@ -20,6 +20,7 @@ func NewSessionHandler(r *gin.Engine, su usecase.SessionUsecase) {
 	r.GET("/sessions/:id/status", handler.GetSessionStatus)
 	r.POST("/internal/webhook/sessions/:id/paid", handler.SetPaymentPaid)
 	r.POST("/sessions/:id/photos", handler.UploadSessionPhoto)
+	r.GET("/sessions/:id/gallery", handler.GetSessionGallery)
 }
 
 func (h *SessionHandler) CreateSession(c *gin.Context) {
@@ -103,4 +104,22 @@ func (h *SessionHandler) UploadSessionPhoto(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, photo)
+}
+
+func (h *SessionHandler) GetSessionGallery(c *gin.Context) {
+	var uri struct {
+		ID uint `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&uri); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	photos, err := h.SessionUsecase.GetSessionGallery(uri.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, photos)
 }
