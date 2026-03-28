@@ -117,9 +117,25 @@ func (h *SessionHandler) GetSessionGallery(c *gin.Context) {
 
 	photos, err := h.SessionUsecase.GetSessionGallery(uri.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, photos)
+	// Mapping ke DTO untuk menyembunyikan field internal GORM
+	type PhotoResponse struct {
+		ID    uint   `json:"id"`
+		S3Url string `json:"s3_url"`
+		Type  string `json:"type"`
+	}
+
+	var response []PhotoResponse
+	for _, p := range photos {
+		response = append(response, PhotoResponse{
+			ID:    p.ID,
+			S3Url: p.S3Url,
+			Type:  p.Type,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
 }

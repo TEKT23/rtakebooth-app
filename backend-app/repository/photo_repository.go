@@ -26,6 +26,6 @@ func (r *photoRepository) Save(photo *domain.Photo) error {
 
 func (r *photoRepository) GetBySessionID(sessionID uint) ([]domain.Photo, error) {
 	var photos []domain.Photo
-	err := r.db.Where("session_id = ?", sessionID).Find(&photos).Error
+	err := r.db.Where("session_id = ?", sessionID).Order("created_at ASC").Find(&photos).Error
 	return photos, err
 }
