@@ -1,0 +1,21 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+app
+
+# Environment files
+.env
+.env.*
+.example.env
+!.env.example
+
+# Go-specific
+bin/
+vendor/
+
+# OS-specific
+.DS_Store
+Thumbs.db
