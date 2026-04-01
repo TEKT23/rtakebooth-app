@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"context"
+	"io"
 	"time"
 
 	"gorm.io/gorm"
@@ -20,4 +22,11 @@ type SessionRepository interface {
 	Create(session *Session) error
 	Update(session *Session) error
 	GetByID(id uint) (*Session, error)
+}
+
+type SessionUsecase interface {
+	CreateSession() (*Session, error)
+	SetPaymentPaid(id uint) error
+	GetSessionStatus(id uint) (string, error)
+	UploadSessionPhoto(ctx context.Context, sessionID uint, file io.Reader, fileType string) (*Photo, error)
 }

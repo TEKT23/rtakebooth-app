@@ -15,3 +15,8 @@ type Photo struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
+
+type PhotoRepository interface {
+	Save(photo *Photo) error
+	GetBySessionID(sessionID uint) ([]Photo, error)
+}
