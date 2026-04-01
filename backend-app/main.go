@@ -33,12 +33,16 @@ func main() {
 	healthUsecase := usecase.NewHealthUsecase()
 	delivery.NewHealthHandler(r, healthUsecase)
 
+	eventRepo := repository.NewEventRepository(config.DB)
 	sessionRepo := repository.NewSessionRepository(config.DB)
 	photoRepo := repository.NewPhotoRepository(config.DB)
 	mockPayment := payment.NewMockPaymentProvider()
 	s3Storage := storage.NewS3StorageService()
 
-	sessionUsecase := usecase.NewSessionUsecase(sessionRepo, photoRepo, mockPayment, s3Storage)
+	eventUsecase := usecase.NewEventUsecase(eventRepo)
+	delivery.NewEventHandler(r, eventUsecase)
+
+	sessionUsecase := usecase.NewSessionUsecase(sessionRepo, photoRepo, eventRepo, mockPayment, s3Storage)
 	delivery.NewSessionHandler(r, sessionUsecase)
 
 	// Start Server
