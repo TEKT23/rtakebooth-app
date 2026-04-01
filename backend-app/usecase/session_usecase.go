@@ -7,24 +7,16 @@ import (
 	"time"
 
 	"github.com/TEKT23/rtakebooth-app/backend-app/domain"
-	"github.com/TEKT23/rtakebooth-app/backend-app/repository"
 )
-
-type SessionUsecase interface {
-	CreateSession() (*domain.Session, error)
-	SetPaymentPaid(id uint) error
-	GetSessionStatus(id uint) (string, error)
-	UploadSessionPhoto(ctx context.Context, sessionID uint, file io.Reader, fileType string) (*domain.Photo, error)
-}
 
 type sessionUsecase struct {
 	repo           domain.SessionRepository
-	photoRepo      repository.PhotoRepository
+	photoRepo      domain.PhotoRepository
 	paymentGateway domain.PaymentGateway
 	storage        domain.StorageService
 }
 
-func NewSessionUsecase(repo domain.SessionRepository, photoRepo repository.PhotoRepository, pg domain.PaymentGateway, storage domain.StorageService) SessionUsecase {
+func NewSessionUsecase(repo domain.SessionRepository, photoRepo domain.PhotoRepository, pg domain.PaymentGateway, storage domain.StorageService) domain.SessionUsecase {
 	return &sessionUsecase{
 		repo:           repo,
 		photoRepo:      photoRepo,
