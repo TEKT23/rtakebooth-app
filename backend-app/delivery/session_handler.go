@@ -26,7 +26,15 @@ func NewSessionHandler(r *gin.Engine, su domain.SessionUsecase) {
 }
 
 func (h *SessionHandler) CreateSession(c *gin.Context) {
-	session, err := h.SessionUsecase.CreateSession()
+	var input struct {
+		EventID uint `json:"event_id" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		NewErrorResponse(c, http.StatusBadRequest, "event_id is required")
+		return
+	}
+
+	session, err := h.SessionUsecase.CreateSession(input.EventID)
 	if err != nil {
 		NewErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

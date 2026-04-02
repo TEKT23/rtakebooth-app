@@ -15,6 +15,7 @@ type Session struct {
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
+	EventID       uint           `gorm:"index" json:"event_id"`
 	Photos        []Photo        `gorm:"foreignKey:SessionID" json:"photos,omitempty"`
 }
 
@@ -25,7 +26,7 @@ type SessionRepository interface {
 }
 
 type SessionUsecase interface {
-	CreateSession() (*Session, error)
+	CreateSession(eventID uint) (*Session, error)
 	SetPaymentPaid(id uint) error
 	GetSessionStatus(id uint) (string, error)
 	UploadSessionPhoto(ctx context.Context, sessionID uint, file io.Reader, fileType string) (*Photo, error)
