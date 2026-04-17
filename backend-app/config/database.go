@@ -36,7 +36,7 @@ func InitDB() {
 	fmt.Println("Connected to Database")
 
 	// Auto Migration
-	err = db.AutoMigrate(&domain.Session{}, &domain.Photo{})
+	err = db.AutoMigrate(&domain.Event{}, &domain.Setting{}, &domain.Session{}, &domain.Photo{}, &domain.ShareQueue{})
 	if err != nil {
 		log.Printf("Failed to migrate database: %v", err)
 	} else {

@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"context"
+	"io"
 	"time"
 
 	"gorm.io/gorm"
@@ -14,4 +16,18 @@ type Photo struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+type PhotoRepository interface {
+	Save(photo *Photo) error
+	GetByID(id uint) (*Photo, error)
+	GetBySessionID(sessionID uint) ([]Photo, error)
+	Delete(id uint) error
+}
+
+type PhotoUsecase interface {
+	UploadPhoto(ctx context.Context, sessionID uint, file io.Reader, fileType string) (*Photo, error)
+	GetPhotosBySession(sessionID uint) ([]Photo, error)
+	DeletePhoto(ctx context.Context, id uint) error
+	GetPresignedURL(ctx context.Context, id uint) (string, error)
 }
