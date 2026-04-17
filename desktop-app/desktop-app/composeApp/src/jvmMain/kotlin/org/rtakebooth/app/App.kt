@@ -1,49 +1,83 @@
 package org.rtakebooth.app
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
-
-import desktop_app.composeapp.generated.resources.Res
-import desktop_app.composeapp.generated.resources.compose_multiplatform
+import org.rtakebooth.app.navigation.NavigationState
+import org.rtakebooth.app.navigation.Screen
+import org.rtakebooth.app.theme.RtakeBoothTheme
+import org.rtakebooth.app.ui.components.Sidebar
+import org.rtakebooth.app.ui.components.StatusBar
+import org.rtakebooth.app.ui.components.TopBar
+import org.rtakebooth.app.ui.setup.GeneralScreen
+import org.rtakebooth.app.ui.setup.CaptureScreen
+import org.rtakebooth.app.ui.setup.CameraScreen
+import org.rtakebooth.app.ui.setup.AttendantScreen
+import org.rtakebooth.app.ui.setup.LayoutScreen
+import org.rtakebooth.app.ui.setup.SharingScreen
+import org.rtakebooth.app.ui.setup.PrintScreen
+import org.rtakebooth.app.ui.setup.PlaceholderScreen
+import org.rtakebooth.app.ui.editor.EditorScreen
+import org.rtakebooth.app.ui.event.SharingStatusScreen
+import org.rtakebooth.app.ui.event.ExportScreen
+import org.rtakebooth.app.ui.event.EventListScreen
+import org.rtakebooth.app.ui.components.AppSnackbar
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @Composable
-@Preview
 fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+    val navigationState = remember { NavigationState() }
+
+    RtakeBoothTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Top Bar
+                TopBar(currentScreen = navigationState.currentScreen)
+
+                // Main content area: Sidebar + Content
+                Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    // Sidebar
+                    Sidebar(
+                        currentScreen = navigationState.currentScreen,
+                        onNavigate = { navigationState.navigateTo(it) }
+                    )
+
+                    // Content Area — route to the correct screen
+                    Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                        when (navigationState.currentScreen) {
+                            Screen.EDITOR -> EditorScreen()
+                            Screen.GENERAL -> GeneralScreen()
+                            Screen.CAPTURE -> CaptureScreen()
+                            Screen.CAMERA -> CameraScreen()
+                            Screen.ATTENDANT -> AttendantScreen()
+                            Screen.LAYOUT -> LayoutScreen()
+                            Screen.SHARING -> SharingScreen()
+                            Screen.PRINT -> PrintScreen()
+                            Screen.SHARING_STATUS -> SharingStatusScreen()
+                            Screen.EXPORT -> ExportScreen()
+                            Screen.EVENTS -> EventListScreen()
+                            else -> PlaceholderScreen(screenName = navigationState.currentScreen.label)
+                        }
+                    }
                 }
+
+                // Status Bar
+                StatusBar()
             }
+
+            // Global Snackbar Overlay
+            var snackbarMessage by remember { mutableStateOf<String?>(null) }
+            var isSnackbarError by remember { mutableStateOf(false) }
+
+            AppSnackbar(
+                message = snackbarMessage,
+                isError = isSnackbarError,
+                onDismiss = { snackbarMessage = null }
+            )
         }
     }
 }
