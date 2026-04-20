@@ -35,8 +35,3 @@ func (r *photoRepository) Delete(id uint) error {
 	return r.db.Delete(&domain.Photo{}, id).Error
 }
 
-func (r *photoRepository) GetBySessionID(sessionID uint) ([]domain.Photo, error) {
-	var photos []domain.Photo
-	err := r.db.Where("session_id = ?", sessionID).Find(&photos).Error
-	return photos, err
-}
