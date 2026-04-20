@@ -61,8 +61,11 @@ func (u *photoUsecase) GetPhotosBySession(sessionID uint) ([]domain.Photo, error
 	if err != nil {
 		return nil, fmt.Errorf("session not found: %w", err)
 	}
-
 	return u.photoRepo.GetBySessionID(sessionID)
+}
+
+func (u *photoUsecase) GetPhotosByEvent(eventID uint) ([]domain.Photo, error) {
+	return u.photoRepo.GetByEventID(eventID)
 }
 
 func (u *photoUsecase) DeletePhoto(ctx context.Context, id uint) error {
@@ -81,7 +84,6 @@ func (u *photoUsecase) DeletePhoto(ctx context.Context, id uint) error {
 	// 3. Hapus dari database
 	return u.photoRepo.Delete(id)
 }
-
 func (u *photoUsecase) GetPresignedURL(ctx context.Context, id uint) (string, error) {
 	photo, err := u.photoRepo.GetByID(id)
 	if err != nil {

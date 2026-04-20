@@ -10,12 +10,12 @@ import (
 
 type Session struct {
 	ID            uint           `gorm:"primaryKey" json:"id"`
+	EventID       uint           `gorm:"index" json:"event_id"`
 	StatusPayment string         `gorm:"type:varchar(20);default:'pending'" json:"status_payment"`
 	QRUrl         string         `gorm:"type:text" json:"qr_url"`
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
-	EventID       uint           `gorm:"index" json:"event_id"`
 	Photos        []Photo        `gorm:"foreignKey:SessionID" json:"photos,omitempty"`
 }
 
@@ -30,4 +30,5 @@ type SessionUsecase interface {
 	SetPaymentPaid(id uint) error
 	GetSessionStatus(id uint) (string, error)
 	UploadSessionPhoto(ctx context.Context, sessionID uint, file io.Reader, fileType string) (*Photo, error)
+	GetSessionGallery(sessionID uint) ([]Photo, error)
 }

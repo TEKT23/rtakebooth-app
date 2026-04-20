@@ -24,8 +24,8 @@ type Event struct {
 
 type EventRepository interface {
 	Create(event *Event) error
-	GetAll() ([]Event, error)
 	GetByID(id uint) (*Event, error)
+	GetAll() ([]Event, error)
 	Update(event *Event) error
 	Delete(id uint) error
 }

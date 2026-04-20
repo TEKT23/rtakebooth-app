@@ -5,17 +5,29 @@
 *.so
 *.dylib
 app
+app.exe
 
 # Environment files
 .env
 .env.*
+.env.local
+.env.*.local
 .example.env
 !.env.example
 
 # Go-specific
 bin/
 vendor/
+*.test
+*.out
+go.work
+
+# IDE files
+.idea/
+.vscode/
+*.swp
 
 # OS-specific
 .DS_Store
 Thumbs.db
+Desktop.ini

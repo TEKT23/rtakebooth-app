@@ -21,6 +21,7 @@ func NewPhotoHandler(r *gin.Engine, pu domain.PhotoUsecase) {
 	{
 		api.POST("/sessions/:id/photos", handler.UploadPhoto)
 		api.GET("/sessions/:id/photos", handler.GetPhotosBySession)
+		api.GET("/events/:id/photos", handler.GetPhotosByEvent)
 		api.DELETE("/photos/:id", handler.DeletePhoto)
 		api.GET("/photos/:id/download", handler.GetPresignedURL)
 	}
@@ -64,6 +65,22 @@ func (h *PhotoHandler) GetPhotosBySession(c *gin.Context) {
 	photos, err := h.PhotoUsecase.GetPhotosBySession(uint(sessionID))
 	if err != nil {
 		NewErrorResponse(c, http.StatusNotFound, err.Error())
+		return
+	}
+
+	NewSuccessResponse(c, http.StatusOK, "Photos retrieved successfully", photos)
+}
+
+func (h *PhotoHandler) GetPhotosByEvent(c *gin.Context) {
+	eventID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		NewErrorResponse(c, http.StatusBadRequest, "invalid event ID")
+		return
+	}
+
+	photos, err := h.PhotoUsecase.GetPhotosByEvent(uint(eventID))
+	if err != nil {
+		NewErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 

@@ -97,3 +97,4 @@ func ExtractS3Key(s3URL string) (string, error) {
 	key := strings.TrimPrefix(parsed.Path, "/")
 	return key, nil
 }
+

@@ -22,12 +22,14 @@ type PhotoRepository interface {
 	Save(photo *Photo) error
 	GetByID(id uint) (*Photo, error)
 	GetBySessionID(sessionID uint) ([]Photo, error)
+	GetByEventID(eventID uint) ([]Photo, error)
 	Delete(id uint) error
 }
 
 type PhotoUsecase interface {
 	UploadPhoto(ctx context.Context, sessionID uint, file io.Reader, fileType string) (*Photo, error)
 	GetPhotosBySession(sessionID uint) ([]Photo, error)
+	GetPhotosByEvent(eventID uint) ([]Photo, error)
 	DeletePhoto(ctx context.Context, id uint) error
 	GetPresignedURL(ctx context.Context, id uint) (string, error)
 }

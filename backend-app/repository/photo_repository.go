@@ -27,11 +27,20 @@ func (r *photoRepository) GetByID(id uint) (*domain.Photo, error) {
 
 func (r *photoRepository) GetBySessionID(sessionID uint) ([]domain.Photo, error) {
 	var photos []domain.Photo
-	err := r.db.Where("session_id = ?", sessionID).Find(&photos).Error
+	err := r.db.Where("session_id = ?", sessionID).Order("created_at ASC").Find(&photos).Error
+	return photos, err
+}
+
+func (r *photoRepository) GetByEventID(eventID uint) ([]domain.Photo, error) {
+	var photos []domain.Photo
+	// Join with sessions table to filter by event_id
+	err := r.db.Joins("JOIN sessions ON sessions.id = photos.session_id").
+		Where("sessions.event_id = ?", eventID).
+		Order("photos.created_at ASC").
+		Find(&photos).Error
 	return photos, err
 }
 
 func (r *photoRepository) Delete(id uint) error {
 	return r.db.Delete(&domain.Photo{}, id).Error
 }
-
