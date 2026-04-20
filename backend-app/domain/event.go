@@ -13,6 +13,7 @@ type Event struct {
 	Location    string         `gorm:"type:text" json:"location"`
 	Description string         `gorm:"type:text" json:"description"`
 	Status      string         `gorm:"type:varchar(20);default:'draft'" json:"status"` // draft, active, completed
+	IsActive    bool           `gorm:"default:true" json:"is_active"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
