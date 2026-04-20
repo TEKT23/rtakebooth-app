@@ -3,15 +3,15 @@ package delivery
 import (
 	"net/http"
 
-	"github.com/TEKT23/rtakebooth-app/backend-app/usecase"
+	"github.com/TEKT23/rtakebooth-app/backend-app/domain"
 	"github.com/gin-gonic/gin"
 )
 
 type SessionHandler struct {
-	SessionUsecase usecase.SessionUsecase
+	SessionUsecase domain.SessionUsecase
 }
 
-func NewSessionHandler(r *gin.Engine, su usecase.SessionUsecase) {
+func NewSessionHandler(r *gin.Engine, su domain.SessionUsecase) {
 	handler := &SessionHandler{
 		SessionUsecase: su,
 	}

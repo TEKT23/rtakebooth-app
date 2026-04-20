@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"gorm.io/gorm"
@@ -15,3 +16,18 @@ type Photo struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
+
+type PhotoRepository interface {
+	Save(photo *Photo) error
+	GetByID(id uint) (*Photo, error)
+	GetBySessionID(sessionID uint) ([]Photo, error)
+	GetByEventID(eventID uint) ([]Photo, error)
+	Delete(id uint) error
+}
+
+type PhotoUsecase interface {
+	GetPhotosBySession(sessionID uint) ([]Photo, error)
+	GetPhotosByEvent(eventID uint) ([]Photo, error)
+	DeletePhoto(ctx context.Context, id uint) error
+}
+

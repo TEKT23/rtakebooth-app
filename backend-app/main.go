@@ -41,6 +41,9 @@ func main() {
 	sessionUsecase := usecase.NewSessionUsecase(sessionRepo, photoRepo, mockPayment, s3Storage)
 	delivery.NewSessionHandler(r, sessionUsecase)
 
+	photoUsecase := usecase.NewPhotoUsecase(photoRepo, sessionRepo, s3Storage)
+	delivery.NewPhotoHandler(r, photoUsecase)
+
 	// Start Server
 	port := os.Getenv("SERVER_PORT")
 	if port == "" {
