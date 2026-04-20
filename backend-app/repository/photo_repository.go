@@ -16,7 +16,7 @@ func NewPhotoRepository(db *gorm.DB) domain.PhotoRepository {
 }
 
 func (r *photoRepository) Save(photo *domain.Photo) error {
-	return r.db.Save(photo).Error
+	return r.db.Create(photo).Error
 }
 
 func (r *photoRepository) GetByID(id uint) (*domain.Photo, error) {

@@ -18,6 +18,8 @@ type Event struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 	Sessions    []Session      `gorm:"foreignKey:EventID" json:"sessions,omitempty"`
+	PhotoCount  int64          `gorm:"-" json:"photo_count"`
+	PrintCount  int64          `gorm:"-" json:"print_count"`
 }
 
 type EventRepository interface {

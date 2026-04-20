@@ -39,9 +39,13 @@ func (u *settingUsecase) GetSettings(category string) (map[string]interface{}, e
 func (u *settingUsecase) SaveSettings(category string, payload map[string]interface{}) error {
 	// Validasi kategori yang diizinkan (optional but recommended)
 	validCategories := map[string]bool{
-		"general": true,
-		"print":   true,
-		"sharing": true,
+		"general":   true,
+		"print":     true,
+		"sharing":   true,
+		"capture":   true,
+		"camera":    true,
+		"attendant": true,
+		"layout":    true,
 	}
 
 	if !validCategories[category] {

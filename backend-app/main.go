@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/TEKT23/rtakebooth-app/backend-app/config"
 	"github.com/TEKT23/rtakebooth-app/backend-app/delivery"
@@ -11,6 +12,7 @@ import (
 	"github.com/TEKT23/rtakebooth-app/backend-app/infrastructure/storage"
 	"github.com/TEKT23/rtakebooth-app/backend-app/repository"
 	"github.com/TEKT23/rtakebooth-app/backend-app/usecase"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -30,16 +32,30 @@ func main() {
 	// Setup Gin
 	r := gin.Default()
 
-	// Initialize Layers
-	healthUsecase := usecase.NewHealthUsecase()
-	delivery.NewHealthHandler(r, healthUsecase)
+	// CORS Middleware
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
+	// Initialize Repositories
 	eventRepo := repository.NewEventRepository(config.DB)
 	settingRepo := repository.NewSettingRepository(config.DB)
 	sessionRepo := repository.NewSessionRepository(config.DB)
 	photoRepo := repository.NewPhotoRepository(config.DB)
+	shareQueueRepo := repository.NewShareQueueRepository(config.DB)
+
+	// Initialize Infrastructure
 	mockPayment := payment.NewMockPaymentProvider()
 	s3Storage := storage.NewS3StorageService()
+
+	// Initialize Usecases & Handlers
+	healthUsecase := usecase.NewHealthUsecase()
+	delivery.NewHealthHandler(r, healthUsecase)
 
 	eventUsecase := usecase.NewEventUsecase(eventRepo)
 	delivery.NewEventHandler(r, eventUsecase)
@@ -52,6 +68,9 @@ func main() {
 
 	photoUsecase := usecase.NewPhotoUsecase(photoRepo, sessionRepo, s3Storage)
 	delivery.NewPhotoHandler(r, photoUsecase)
+
+	shareQueueUsecase := usecase.NewShareQueueUsecase(shareQueueRepo)
+	delivery.NewShareQueueHandler(r, shareQueueUsecase)
 
 	// Seeder Dasar
 	seedDefaultSettings(settingUsecase)
@@ -67,7 +86,7 @@ func main() {
 }
 
 func seedDefaultSettings(su domain.SettingUsecase) {
-	categories := []string{"general", "print", "sharing"}
+	categories := []string{"general", "print", "sharing", "capture", "camera", "attendant", "layout"}
 	for _, cat := range categories {
 		settings, _ := su.GetSettings(cat)
 		if len(settings) == 0 {
