@@ -21,7 +21,6 @@ func NewSessionHandler(r *gin.Engine, su domain.SessionUsecase) {
 		api.POST("/sessions", handler.CreateSession)
 		api.GET("/sessions/:id/status", handler.GetSessionStatus)
 		api.POST("/internal/webhook/sessions/:id/paid", handler.SetPaymentPaid)
-		api.POST("/sessions/:id/photos", handler.UploadSessionPhoto)
 	}
 }
 
@@ -80,34 +79,4 @@ func (h *SessionHandler) SetPaymentPaid(c *gin.Context) {
 	}
 
 	NewSuccessResponse(c, http.StatusOK, "Payment status updated to PAID", nil)
-}
-
-func (h *SessionHandler) UploadSessionPhoto(c *gin.Context) {
-	var uri struct {
-		ID uint `uri:"id" binding:"required"`
-	}
-	if err := c.ShouldBindUri(&uri); err != nil {
-		NewErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	file, _, err := c.Request.FormFile("file")
-	if err != nil {
-		NewErrorResponse(c, http.StatusBadRequest, "file is required")
-		return
-	}
-	defer file.Close()
-
-	fileType := c.PostForm("type")
-	if fileType == "" {
-		fileType = "raw"
-	}
-
-	photo, err := h.SessionUsecase.UploadSessionPhoto(c.Request.Context(), uri.ID, file, fileType)
-	if err != nil {
-		NewErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	NewSuccessResponse(c, http.StatusCreated, "Photo uploaded successfully", photo)
 }

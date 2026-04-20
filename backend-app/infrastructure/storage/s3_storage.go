@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/TEKT23/rtakebooth-app/backend-app/domain"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -56,4 +59,41 @@ func (s *s3StorageService) UploadFile(ctx context.Context, file io.Reader, fileN
 	}
 
 	return result.Location, nil
+}
+
+func (s *s3StorageService) DeleteFile(ctx context.Context, fileName string) error {
+	_, err := s.client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(fileName),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete file from S3: %w", err)
+	}
+	return nil
+}
+
+func (s *s3StorageService) GetPresignedURL(ctx context.Context, fileName string) (string, error) {
+	presignClient := s3.NewPresignClient(s.client)
+
+	result, err := presignClient.PresignGetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(fileName),
+	}, s3.WithPresignExpires(15*time.Minute))
+
+	if err != nil {
+		return "", fmt.Errorf("failed to generate presigned URL: %w", err)
+	}
+
+	return result.URL, nil
+}
+
+// ExtractS3Key extracts the S3 object key from a full S3 URL.
+func ExtractS3Key(s3URL string) (string, error) {
+	parsed, err := url.Parse(s3URL)
+	if err != nil {
+		return "", err
+	}
+	// Remove leading slash from path
+	key := strings.TrimPrefix(parsed.Path, "/")
+	return key, nil
 }
