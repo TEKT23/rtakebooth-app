@@ -26,10 +26,9 @@ type SessionRepository interface {
 }
 
 type SessionUsecase interface {
-	CreateSession() (*Session, error)
+	CreateSession(eventID uint) (*Session, error)
 	SetPaymentPaid(id uint) error
 	GetSessionStatus(id uint) (string, error)
 	UploadSessionPhoto(ctx context.Context, sessionID uint, file io.Reader, fileType string) (*Photo, error)
 	GetSessionGallery(sessionID uint) ([]Photo, error)
 }
-

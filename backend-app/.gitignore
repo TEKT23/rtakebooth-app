@@ -1,33 +1,33 @@
-# Binaries for programs and plugins
+# Binaries
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+app
 app.exe
 
-# Test binary, built with `go test -c`
-*.test
-
-# Output of the go coverage tool, specifically when used with Litmus
-*.out
-
-# Dependency directories (remove the comment below to include it)
-# vendor/
-
-# Go workspace file
-go.work
-
-# Configuration files (SENSITIVE)
+# Environment files
 .env
+.env.*
 .env.local
 .env.*.local
+.example.env
+!.env.example
+
+# Go-specific
+bin/
+vendor/
+*.test
+*.out
+go.work
 
 # IDE files
 .idea/
 .vscode/
 *.swp
 
-# OS generated files
+# OS-specific
+.DS_Store
 Thumbs.db
 Desktop.ini

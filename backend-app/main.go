@@ -6,6 +6,7 @@ import (
 
 	"github.com/TEKT23/rtakebooth-app/backend-app/config"
 	"github.com/TEKT23/rtakebooth-app/backend-app/delivery"
+	"github.com/TEKT23/rtakebooth-app/backend-app/domain"
 	"github.com/TEKT23/rtakebooth-app/backend-app/infrastructure/payment"
 	"github.com/TEKT23/rtakebooth-app/backend-app/infrastructure/storage"
 	"github.com/TEKT23/rtakebooth-app/backend-app/repository"
@@ -33,16 +34,27 @@ func main() {
 	healthUsecase := usecase.NewHealthUsecase()
 	delivery.NewHealthHandler(r, healthUsecase)
 
+	eventRepo := repository.NewEventRepository(config.DB)
+	settingRepo := repository.NewSettingRepository(config.DB)
 	sessionRepo := repository.NewSessionRepository(config.DB)
 	photoRepo := repository.NewPhotoRepository(config.DB)
 	mockPayment := payment.NewMockPaymentProvider()
 	s3Storage := storage.NewS3StorageService()
 
-	sessionUsecase := usecase.NewSessionUsecase(sessionRepo, photoRepo, mockPayment, s3Storage)
+	eventUsecase := usecase.NewEventUsecase(eventRepo)
+	delivery.NewEventHandler(r, eventUsecase)
+
+	settingUsecase := usecase.NewSettingUsecase(settingRepo)
+	delivery.NewSettingHandler(r, settingUsecase)
+
+	sessionUsecase := usecase.NewSessionUsecase(sessionRepo, photoRepo, eventRepo, mockPayment, s3Storage)
 	delivery.NewSessionHandler(r, sessionUsecase)
 
 	photoUsecase := usecase.NewPhotoUsecase(photoRepo, sessionRepo, s3Storage)
 	delivery.NewPhotoHandler(r, photoUsecase)
+
+	// Seeder Dasar
+	seedDefaultSettings(settingUsecase)
 
 	// Start Server
 	port := os.Getenv("SERVER_PORT")
@@ -52,4 +64,14 @@ func main() {
 
 	log.Printf("Server starting on port %s", port)
 	r.Run(":" + port)
+}
+
+func seedDefaultSettings(su domain.SettingUsecase) {
+	categories := []string{"general", "print", "sharing"}
+	for _, cat := range categories {
+		settings, _ := su.GetSettings(cat)
+		if len(settings) == 0 {
+			_ = su.SaveSettings(cat, make(map[string]interface{}))
+		}
+	}
 }

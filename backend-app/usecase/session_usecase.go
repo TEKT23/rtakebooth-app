@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -12,39 +13,51 @@ import (
 type sessionUsecase struct {
 	repo           domain.SessionRepository
 	photoRepo      domain.PhotoRepository
+	eventRepo      domain.EventRepository
 	paymentGateway domain.PaymentGateway
 	storage        domain.StorageService
 }
 
-func NewSessionUsecase(repo domain.SessionRepository, photoRepo domain.PhotoRepository, pg domain.PaymentGateway, storage domain.StorageService) domain.SessionUsecase {
+func NewSessionUsecase(repo domain.SessionRepository, photoRepo domain.PhotoRepository, eventRepo domain.EventRepository, pg domain.PaymentGateway, storage domain.StorageService) domain.SessionUsecase {
 	return &sessionUsecase{
 		repo:           repo,
 		photoRepo:      photoRepo,
+		eventRepo:      eventRepo,
 		paymentGateway: pg,
 		storage:        storage,
 	}
 }
 
-func (u *sessionUsecase) CreateSession() (*domain.Session, error) {
-	// 1. Inisialisasi object Session
+func (u *sessionUsecase) CreateSession(eventID uint) (*domain.Session, error) {
+	// 1. Verifikasi event aktif ada
+	event, err := u.eventRepo.GetByID(eventID)
+	if err != nil {
+		return nil, fmt.Errorf("event not found: %w", err)
+	}
+
+	if !event.IsActive {
+		return nil, errors.New("event is not active")
+	}
+
+	// 2. Inisialisasi object Session
 	session := &domain.Session{
+		EventID:       eventID,
 		StatusPayment: "pending",
 	}
 
-	// 2. Simpan dulu untuk dapat ID (atau bisa panggil payment dulu jika ID tidak wajib di QR saat init)
-	// Namun di mock kita butuh ID untuk URL QR dummy.
-	err := u.repo.Create(session)
+	// 3. Simpan dulu untuk dapat ID (atau bisa panggil payment dulu jika ID tidak wajib di QR saat init)
+	err = u.repo.Create(session)
 	if err != nil {
 		return nil, err
 	}
 
-	// 3. Panggil Payment Gateway untuk dapat QR URL
+	// 4. Panggil Payment Gateway untuk dapat QR URL
 	qrURL, err := u.paymentGateway.CreateTransactionQR(session.ID, 50000) // Dummy amount 50k
 	if err != nil {
 		return nil, err
 	}
 
-	// 4. Update session dengan QR URL
+	// 5. Update session dengan QR URL
 	session.QRUrl = qrURL
 	err = u.repo.Update(session)
 	if err != nil {

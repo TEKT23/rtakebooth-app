@@ -30,4 +30,3 @@ type PhotoUsecase interface {
 	GetPhotosByEvent(eventID uint) ([]Photo, error)
 	DeletePhoto(ctx context.Context, id uint) error
 }
-

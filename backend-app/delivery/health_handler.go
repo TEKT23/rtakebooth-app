@@ -22,8 +22,8 @@ func NewHealthHandler(r *gin.Engine, hu domain.HealthUsecase) {
 func (h *HealthHandler) CheckHealth(c *gin.Context) {
 	res, err := h.HealthUsecase.CheckHealth()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		NewErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, res)
+	NewSuccessResponse(c, http.StatusOK, "Health check success", res)
 }
