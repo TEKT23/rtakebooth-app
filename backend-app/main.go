@@ -9,6 +9,7 @@ import (
 	"github.com/TEKT23/rtakebooth-app/backend-app/delivery"
 	"github.com/TEKT23/rtakebooth-app/backend-app/domain"
 	"github.com/TEKT23/rtakebooth-app/backend-app/infrastructure/payment"
+	"github.com/TEKT23/rtakebooth-app/backend-app/infrastructure/printer"
 	"github.com/TEKT23/rtakebooth-app/backend-app/infrastructure/storage"
 	"github.com/TEKT23/rtakebooth-app/backend-app/repository"
 	"github.com/TEKT23/rtakebooth-app/backend-app/usecase"
@@ -18,7 +19,7 @@ import (
 )
 
 func main() {
-	// Load environment variables (mencoba di folder saat ini dan folder backend-app jika di-run dari root)
+	// Load environment variables
 	err := godotenv.Load()
 	if err != nil {
 		err = godotenv.Load("backend-app/.env")
@@ -48,10 +49,12 @@ func main() {
 	sessionRepo := repository.NewSessionRepository(config.DB)
 	photoRepo := repository.NewPhotoRepository(config.DB)
 	shareQueueRepo := repository.NewShareQueueRepository(config.DB)
+	printJobRepo := repository.NewPrintJobRepository(config.DB)
 
 	// Initialize Infrastructure
 	mockPayment := payment.NewMockPaymentProvider()
 	s3Storage := storage.NewS3StorageService()
+	winPrinter := printer.NewWindowsPrinterService()
 
 	// Initialize Usecases & Handlers
 	healthUsecase := usecase.NewHealthUsecase()
@@ -71,6 +74,12 @@ func main() {
 
 	shareQueueUsecase := usecase.NewShareQueueUsecase(shareQueueRepo)
 	delivery.NewShareQueueHandler(r, shareQueueUsecase)
+
+	printUsecase := usecase.NewPrintJobUsecase(printJobRepo, photoRepo, settingRepo, winPrinter)
+	delivery.NewPrintHandler(r, printUsecase)
+
+	exportUsecase := usecase.NewExportUsecase(eventRepo, photoRepo)
+	delivery.NewExportHandler(r, exportUsecase)
 
 	// Seeder Dasar
 	seedDefaultSettings(settingUsecase)

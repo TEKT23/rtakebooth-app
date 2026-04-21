@@ -35,7 +35,7 @@ func (u *sessionUsecase) CreateSession(eventID uint) (*domain.Session, error) {
 		return nil, fmt.Errorf("event not found: %w", err)
 	}
 
-	if event.Status != "active" {
+	if event.IsActive != nil && !*event.IsActive {
 		return nil, errors.New("event is not active")
 	}
 
