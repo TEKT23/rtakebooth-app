@@ -34,19 +34,28 @@ func (h *PhotoHandler) UploadPhoto(c *gin.Context) {
 		return
 	}
 
-	file, _, err := c.Request.FormFile("file")
+	// 2. Ambil File dari Multipart Form
+	file, fileHeader, err := c.Request.FormFile("file")
 	if err != nil {
 		NewErrorResponse(c, http.StatusBadRequest, "file is required")
 		return
 	}
 	defer file.Close()
 
+	// 3. Deteksi MIME Type secara dinamis
+	mimeType := fileHeader.Header.Get("Content-Type")
+	if mimeType == "" {
+		mimeType = "image/jpeg" // Default fallback
+	}
+
+	// 4. Ambil Tipe Kategori dari Form (raw_final, result_live, dll)
 	fileType := c.PostForm("type")
 	if fileType == "" {
 		fileType = "raw"
 	}
 
-	photo, err := h.PhotoUsecase.UploadPhoto(c.Request.Context(), uint(sessionID), file, fileType)
+	// 5. Jalankan Usecase
+	photo, err := h.PhotoUsecase.UploadPhoto(c.Request.Context(), uint(sessionID), file, mimeType, fileType)
 	if err != nil {
 		NewErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

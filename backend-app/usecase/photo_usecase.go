@@ -24,23 +24,26 @@ func NewPhotoUsecase(photoRepo domain.PhotoRepository, sessionRepo domain.Sessio
 	}
 }
 
-func (u *photoUsecase) UploadPhoto(ctx context.Context, sessionID uint, file io.Reader, fileType string) (*domain.Photo, error) {
+func (u *photoUsecase) UploadPhoto(ctx context.Context, sessionID uint, file io.Reader, mimeType string, fileType string) (*domain.Photo, error) {
 	// 1. Verifikasi sesi ada
 	_, err := u.sessionRepo.GetByID(sessionID)
 	if err != nil {
 		return nil, fmt.Errorf("session not found: %w", err)
 	}
 
-	// 2. Tentukan nama file unik
-	fileName := fmt.Sprintf("sessions/%d/%d_%s.jpg", sessionID, time.Now().UnixNano(), fileType)
+	// 2. Tentukan ekstensi file berdasarkan MIME Type
+	ext := u.getExtensionFromMimeType(mimeType)
 
-	// 3. Upload ke S3
-	s3URL, err := u.storage.UploadFile(ctx, file, fileName, "image/jpeg")
+	// 3. Tentukan nama file unik
+	fileName := fmt.Sprintf("sessions/%d/%d_%s%s", sessionID, time.Now().UnixNano(), fileType, ext)
+
+	// 4. Upload ke S3
+	s3URL, err := u.storage.UploadFile(ctx, file, fileName, mimeType)
 	if err != nil {
 		return nil, err
 	}
 
-	// 4. Simpan ke database
+	// 5. Simpan ke database
 	photo := &domain.Photo{
 		SessionID: sessionID,
 		S3Url:     s3URL,
@@ -84,6 +87,7 @@ func (u *photoUsecase) DeletePhoto(ctx context.Context, id uint) error {
 	// 3. Hapus dari database
 	return u.photoRepo.Delete(id)
 }
+
 func (u *photoUsecase) GetPresignedURL(ctx context.Context, id uint) (string, error) {
 	photo, err := u.photoRepo.GetByID(id)
 	if err != nil {
@@ -96,4 +100,22 @@ func (u *photoUsecase) GetPresignedURL(ctx context.Context, id uint) (string, er
 	}
 
 	return u.storage.GetPresignedURL(ctx, s3Key)
+}
+
+// getExtensionFromMimeType maps MIME types to common file extensions.
+func (u *photoUsecase) getExtensionFromMimeType(mimeType string) string {
+	switch mimeType {
+	case "image/jpeg":
+		return ".jpg"
+	case "image/png":
+		return ".png"
+	case "image/gif":
+		return ".gif"
+	case "video/mp4":
+		return ".mp4"
+	case "video/quicktime":
+		return ".mov"
+	default:
+		return ".jpg" // Default fallback
+	}
 }
