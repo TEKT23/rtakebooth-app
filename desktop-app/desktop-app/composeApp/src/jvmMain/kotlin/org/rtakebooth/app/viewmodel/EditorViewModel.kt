@@ -36,18 +36,21 @@ class EditorViewModel {
                 ElementType.IMAGE -> ""
                 ElementType.QR_CODE -> "https://rtakebooth.com"
                 ElementType.SHAPE -> ""
+                else -> ""
             },
             width = when (type) {
                 ElementType.TEXT -> 200f
                 ElementType.IMAGE -> 200f
                 ElementType.QR_CODE -> 120f
                 ElementType.SHAPE -> 150f
+                else -> 100f
             },
             height = when (type) {
                 ElementType.TEXT -> 50f
                 ElementType.IMAGE -> 150f
                 ElementType.QR_CODE -> 120f
                 ElementType.SHAPE -> 150f
+                else -> 100f
             },
             zIndex = elements.size,
         )
@@ -68,7 +71,8 @@ class EditorViewModel {
         state = state.copy(canvasElements = updatedMap, selectedElementId = null)
     }
 
-    fun updateElement(elementId: String, transform: (CanvasElement) -> CanvasElement) {
+    fun updateElement(elementId: String, pushToUndo: Boolean = false, transform: (CanvasElement) -> CanvasElement) {
+        if (pushToUndo) saveStateForUndo()
         val currentTab = state.currentTab
         val updatedMap = state.canvasElements.toMutableMap()
         updatedMap[currentTab] = currentElements().map {
@@ -77,16 +81,27 @@ class EditorViewModel {
         state = state.copy(canvasElements = updatedMap)
     }
 
+    fun onDragEnd() {
+        saveStateForUndo()
+    }
+
     fun selectElement(elementId: String?) {
         state = state.copy(selectedElementId = elementId)
     }
 
-    fun moveElement(elementId: String, newX: Float, newY: Float) {
-        updateElement(elementId) { it.copy(x = newX, y = newY) }
+    fun moveElement(elementId: String, newX: Float, newY: Float, pushToUndo: Boolean = false) {
+        updateElement(elementId, pushToUndo) { it.copy(x = newX, y = newY) }
     }
 
-    fun resizeElement(elementId: String, newWidth: Float, newHeight: Float) {
-        updateElement(elementId) { it.copy(width = newWidth, height = newHeight) }
+    fun resizeElement(elementId: String, newWidth: Float, newHeight: Float, newX: Float? = null, newY: Float? = null, pushToUndo: Boolean = false) {
+        updateElement(elementId, pushToUndo) { 
+            it.copy(
+                width = newWidth, 
+                height = newHeight,
+                x = newX ?: it.x,
+                y = newY ?: it.y
+            ) 
+        }
     }
 
     // ---- Properties Panel Updates ----

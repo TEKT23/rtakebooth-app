@@ -4,18 +4,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.rtakebooth.app.ui.components.*
+import org.rtakebooth.app.ui.setup.layout.*
 import org.rtakebooth.app.viewmodel.LayoutViewModel
 
 @Composable
-fun LayoutScreen(viewModel: LayoutViewModel = remember { LayoutViewModel() }) {
-    val settings = viewModel.settings
+fun LayoutScreen(viewModel: LayoutViewModel) {
+    var selectedTabIndex by remember { mutableStateOf(0) }
+    val tabs = listOf("Effects", "AI Portrait", "BG Removal", "Survey")
     val scrollState = rememberScrollState()
 
     Surface(
@@ -23,151 +23,32 @@ fun LayoutScreen(viewModel: LayoutViewModel = remember { LayoutViewModel() }) {
         color = MaterialTheme.colorScheme.background
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Scrollable form content
+            // Internal Navigation Tabs
+            TabRow(selectedTabIndex = selectedTabIndex) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = { selectedTabIndex = index },
+                        text = { Text(title) }
+                    )
+                }
+            }
+
+            // Scrollable Content
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(scrollState)
-                    .padding(bottom = 16.dp)
             ) {
-                // Loading indicator
                 if (viewModel.isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
 
-                // === SECTION: Effects & Stickers ===
-                SectionHeader("Effects & Stickers")
-
-                ToggleRow(
-                    label = "Beauty Filter",
-                    checked = settings.beautyFilterEnabled,
-                    onCheckedChange = { viewModel.updateSettings(settings.copy(beautyFilterEnabled = it)) }
-                )
-                ToggleRow(
-                    label = "Color Filters",
-                    checked = settings.colorFiltersEnabled,
-                    onCheckedChange = { viewModel.updateSettings(settings.copy(colorFiltersEnabled = it)) }
-                )
-                ToggleRow(
-                    label = "Post-Processing / Color Grading",
-                    checked = settings.postProcessingEnabled,
-                    onCheckedChange = { viewModel.updateSettings(settings.copy(postProcessingEnabled = it)) }
-                )
-                ToggleRow(
-                    label = "Stickers",
-                    checked = settings.stickersEnabled,
-                    onCheckedChange = { viewModel.updateSettings(settings.copy(stickersEnabled = it)) }
-                )
-                ToggleRow(
-                    label = "Watermark",
-                    checked = settings.watermarkEnabled,
-                    onCheckedChange = { viewModel.updateSettings(settings.copy(watermarkEnabled = it)) }
-                )
-                if (settings.watermarkEnabled) {
-                    FilePickerRow(
-                        label = "Watermark Image",
-                        path = settings.watermarkImagePath,
-                        onPathSelected = { viewModel.updateSettings(settings.copy(watermarkImagePath = it)) }
-                    )
-                }
-
-                // === SECTION: AI Portraits ===
-                SectionHeader("AI Portraits")
-
-                ToggleRow(
-                    label = "Enable AI Portraits",
-                    checked = settings.aiPortraitEnabled,
-                    onCheckedChange = { viewModel.updateSettings(settings.copy(aiPortraitEnabled = it)) }
-                )
-                if (settings.aiPortraitEnabled) {
-                    TextFieldRow(
-                        label = "Choose your style label",
-                        value = settings.aiPortraitChooseLabel,
-                        onValueChange = { viewModel.updateSettings(settings.copy(aiPortraitChooseLabel = it)) }
-                    )
-                    TextFieldRow(
-                        label = "Creating AI Portrait label",
-                        value = settings.aiPortraitCreatingLabel,
-                        onValueChange = { viewModel.updateSettings(settings.copy(aiPortraitCreatingLabel = it)) }
-                    )
-                    TextFieldRow(
-                        label = "Retrying label",
-                        value = settings.aiPortraitRetryingLabel,
-                        onValueChange = { viewModel.updateSettings(settings.copy(aiPortraitRetryingLabel = it)) }
-                    )
-                    TextFieldRow(
-                        label = "Unable to create label",
-                        value = settings.aiPortraitErrorLabel,
-                        onValueChange = { viewModel.updateSettings(settings.copy(aiPortraitErrorLabel = it)) }
-                    )
-                }
-
-                // === SECTION: Background Removal ===
-                SectionHeader("Background Removal")
-
-                ToggleRow(
-                    label = "Enable Background Removal",
-                    checked = settings.bgRemovalEnabled,
-                    onCheckedChange = { viewModel.updateSettings(settings.copy(bgRemovalEnabled = it)) }
-                )
-                if (settings.bgRemovalEnabled) {
-                    RadioGroupRow(
-                        label = "Mode",
-                        selectedOption = settings.bgRemovalMode,
-                        options = listOf("Green Screen", "AI Removal"),
-                        onOptionSelected = { viewModel.updateSettings(settings.copy(bgRemovalMode = it)) }
-                    )
-                    FilePickerRow(
-                        label = "Background Replacement Image",
-                        path = settings.bgReplacementImagePath,
-                        onPathSelected = { viewModel.updateSettings(settings.copy(bgReplacementImagePath = it)) }
-                    )
-                }
-
-                // === SECTION: Survey & Disclaimer ===
-                SectionHeader("Survey & Disclaimer")
-
-                ToggleRow(
-                    label = "Enable Survey",
-                    checked = settings.surveyEnabled,
-                    onCheckedChange = { viewModel.updateSettings(settings.copy(surveyEnabled = it)) }
-                )
-                if (settings.surveyEnabled) {
-                    SliderRow(
-                        label = "Survey Font Size",
-                        value = settings.surveyFontSize,
-                        onValueChange = { viewModel.updateSettings(settings.copy(surveyFontSize = it)) },
-                        valueRange = 10f..24f,
-                        unit = "sp"
-                    )
-                    ActionButtonRow(
-                        label = "View Responses",
-                        buttonText = "View",
-                        onClick = { println("Clicked View Responses") }
-                    )
-                }
-
-                ToggleRow(
-                    label = "Enable Disclaimer",
-                    checked = settings.disclaimerEnabled,
-                    onCheckedChange = { viewModel.updateSettings(settings.copy(disclaimerEnabled = it)) }
-                )
-                if (settings.disclaimerEnabled) {
-                    TextFieldRow(
-                        label = "Disclaimer Header",
-                        value = settings.disclaimerHeader,
-                        onValueChange = { viewModel.updateSettings(settings.copy(disclaimerHeader = it)) }
-                    )
-                    LargeTextAreaRow(
-                        label = "Disclaimer Content / Terms & Conditions",
-                        value = settings.disclaimerContent,
-                        onValueChange = { viewModel.updateSettings(settings.copy(disclaimerContent = it)) }
-                    )
+                when (selectedTabIndex) {
+                    0 -> EffectsSection(viewModel)
+                    1 -> AiPortraitSection(viewModel)
+                    2 -> BgRemovalSection(viewModel)
+                    3 -> SurveyDisclaimerSection(viewModel)
                 }
             }
 

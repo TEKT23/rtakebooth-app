@@ -59,6 +59,9 @@ fun EditorScreen(viewModel: EditorViewModel = remember { EditorViewModel() }) {
                 state = state,
                 elements = viewModel.currentElements(),
                 onSelectElement = { viewModel.selectElement(it) },
+                onMoveElement = { id, x, y, undo -> viewModel.moveElement(id, x, y, undo) },
+                onResizeElement = { id, w, h, x, y, undo -> viewModel.resizeElement(id, w, h, x, y, undo) },
+                onDragEnd = { viewModel.onDragEnd() },
                 modifier = Modifier.weight(1f)
             )
 
@@ -76,7 +79,7 @@ fun EditorScreen(viewModel: EditorViewModel = remember { EditorViewModel() }) {
                 onUpdateShowCountdown = { viewModel.updateShowCountdown(it) },
                 onUpdateShowCancelButton = { viewModel.updateShowCancelButton(it) },
                 onUpdateSessionTrigger = { viewModel.updateSessionTrigger(it) },
-                onUpdateElement = { id, transform -> viewModel.updateElement(id, transform) }
+                onUpdateElement = { id, transform -> viewModel.updateElement(id, false, transform) }
             )
         }
     }

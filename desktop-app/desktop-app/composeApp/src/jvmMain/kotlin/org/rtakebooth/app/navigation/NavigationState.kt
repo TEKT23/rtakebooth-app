@@ -13,6 +13,7 @@ enum class Screen(val label: String, val icon: String) {
     LAYOUT("Photo Layout", "🖼️"),
     SHARING("Sharing", "📤"),
     PRINT("Print Setup", "🖨️"),
+    PRESETS_TEMPLATE("Presets/Template", "📋"),
     // -- separator -- (SHARING_STATUS and EXPORT are in the Event group)
     SHARING_STATUS("Sharing Status", "📊"),
     EXPORT("Export & Config", "💾"),
@@ -29,6 +30,7 @@ val SETTINGS_SCREENS = listOf(
     Screen.LAYOUT,
     Screen.SHARING,
     Screen.PRINT,
+    Screen.PRESETS_TEMPLATE,
 )
 
 // Screens that belong to the "Event" group (second block in sidebar)
