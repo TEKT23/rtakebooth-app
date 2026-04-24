@@ -3,14 +3,16 @@ package org.rtakebooth.app.ui.editor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.rtakebooth.app.data.model.ElementType
 import org.rtakebooth.app.data.model.EditorState
 import org.rtakebooth.app.data.model.ScreenTab
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorToolbar(
     state: EditorState,
@@ -23,63 +25,91 @@ fun EditorToolbar(
     onDelete: () -> Unit,
 ) {
     Surface(
-        tonalElevation = 2.dp,
+        tonalElevation = 3.dp,
+        shadowElevation = 4.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
-                .padding(8.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Tab Buttons
-            Row(modifier = Modifier.weight(1f)) {
-                ScreenTab.entries.forEach { tab ->
-                    FilterChip(
+            // Tab Selection (Premium Pill style)
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.weight(1f)
+            ) {
+                ScreenTab.entries.forEachIndexed { index, tab ->
+                    SegmentedButton(
                         selected = state.currentTab == tab,
                         onClick = { onTabSwitch(tab) },
-                        label = { Text(tab.name.lowercase().replaceFirstChar { it.uppercase() }) },
-                        modifier = Modifier.padding(end = 8.dp)
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = ScreenTab.entries.size),
+                        label = { Text(tab.name.lowercase().replaceFirstChar { it.uppercase() }) }
                     )
                 }
             }
 
-            // Toolbar Buttons
+            Spacer(modifier = Modifier.width(24.dp))
+
+            // Toolbar Actions
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Add Element Buttons
-                IconButton(onClick = { onAddElement(ElementType.TEXT) }) {
-                    Text("T", style = MaterialTheme.typography.titleLarge)
-                }
-                IconButton(onClick = { onAddElement(ElementType.IMAGE) }) {
-                    Text("🖼", style = MaterialTheme.typography.titleLarge)
-                }
-                IconButton(onClick = { onAddElement(ElementType.QR_CODE) }) {
-                    Text("QR", style = MaterialTheme.typography.titleMedium)
-                }
-                IconButton(onClick = { onAddElement(ElementType.SHAPE) }) {
-                    Text("▢", style = MaterialTheme.typography.titleLarge)
-                }
-
-                VerticalDivider(modifier = Modifier.height(32.dp).padding(horizontal = 8.dp))
-
-                // Undo/Redo Buttons
-                IconButton(onClick = onUndo, enabled = canUndo) {
-                    Text("↩", style = MaterialTheme.typography.titleLarge)
-                }
-                IconButton(onClick = onRedo, enabled = canRedo) {
-                    Text("↪", style = MaterialTheme.typography.titleLarge)
+                // Add Elements Group
+                ToolButtonGroup(label = "Add") {
+                    IconButton(onClick = { onAddElement(ElementType.TEXT) }) {
+                        Text("T", style = MaterialTheme.typography.titleLarge)
+                    }
+                    IconButton(onClick = { onAddElement(ElementType.IMAGE) }) {
+                        Text("🖼", style = MaterialTheme.typography.titleLarge)
+                    }
+                    IconButton(onClick = { onAddElement(ElementType.QR_CODE) }) {
+                        Text("QR", style = MaterialTheme.typography.titleMedium)
+                    }
+                    IconButton(onClick = { onAddElement(ElementType.SHAPE) }) {
+                        Text("▢", style = MaterialTheme.typography.titleLarge)
+                    }
                 }
 
-                VerticalDivider(modifier = Modifier.height(32.dp).padding(horizontal = 8.dp))
+                VerticalDivider(modifier = Modifier.height(32.dp).padding(horizontal = 4.dp))
 
-                // Delete Button
-                IconButton(onClick = onDelete, enabled = state.selectedElementId != null) {
-                    Text("🗑", style = MaterialTheme.typography.titleLarge, color = if (state.selectedElementId != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline)
+                // History Group
+                Row {
+                    IconButton(onClick = onUndo, enabled = canUndo) {
+                        Text("↩", style = MaterialTheme.typography.titleLarge)
+                    }
+                    IconButton(onClick = onRedo, enabled = canRedo) {
+                        Text("↪", style = MaterialTheme.typography.titleLarge)
+                    }
+                }
+
+                VerticalDivider(modifier = Modifier.height(32.dp).padding(horizontal = 4.dp))
+
+                // Action Group
+                IconButton(
+                    onClick = onDelete, 
+                    enabled = state.selectedElementId != null,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                        disabledContentColor = MaterialTheme.colorScheme.outline
+                    )
+                ) {
+                    Text("🗑", style = MaterialTheme.typography.titleLarge)
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ToolButtonGroup(label: String, content: @Composable RowScope.() -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), MaterialTheme.shapes.medium)
+            .padding(horizontal = 4.dp)
+    ) {
+        content()
     }
 }

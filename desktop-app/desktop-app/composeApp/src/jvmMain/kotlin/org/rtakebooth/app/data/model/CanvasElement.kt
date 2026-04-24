@@ -19,8 +19,10 @@ data class CanvasElement(
     val cornerRadius: Float = 0f,           // untuk SHAPE
     val opacity: Float = 1.0f,
     val zIndex: Int = 0,
+    val sequenceNumber: Int = 1,            // hanya untuk PHOTO_FROM_BOOTH
+    val isLocked: Boolean = false,
 )
 
 enum class ElementType {
-    TEXT, IMAGE, QR_CODE, SHAPE
+    TEXT, IMAGE, QR_CODE, SHAPE, PHOTO_FROM_BOOTH, SESSION_DATA
 }

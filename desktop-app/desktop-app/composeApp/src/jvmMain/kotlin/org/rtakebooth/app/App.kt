@@ -46,17 +46,29 @@ fun App() {
                         onNavigate = { navigationState.navigateTo(it) }
                     )
 
+                    // ViewModels (Hoisted to preserve state across navigation)
+                    val editorViewModel = remember { org.rtakebooth.app.viewmodel.EditorViewModel() }
+                    val generalViewModel = remember { org.rtakebooth.app.viewmodel.GeneralViewModel() }
+                    val captureViewModel = remember { org.rtakebooth.app.viewmodel.CaptureViewModel() }
+                    val cameraViewModel = remember { org.rtakebooth.app.viewmodel.CameraViewModel() }
+                    val attendantViewModel = remember { org.rtakebooth.app.viewmodel.AttendantViewModel() }
+                    val layoutViewModel = remember { org.rtakebooth.app.viewmodel.LayoutViewModel() }
+                    val sharingViewModel = remember { org.rtakebooth.app.viewmodel.SharingViewModel() }
+                    val printViewModel = remember { org.rtakebooth.app.viewmodel.PrintViewModel() }
+                    val templateViewModel = remember { org.rtakebooth.app.viewmodel.TemplateViewModel() }
+
                     // Content Area — route to the correct screen
                     Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                         when (navigationState.currentScreen) {
-                            Screen.EDITOR -> EditorScreen()
-                            Screen.GENERAL -> GeneralScreen()
-                            Screen.CAPTURE -> CaptureScreen()
-                            Screen.CAMERA -> CameraScreen()
-                            Screen.ATTENDANT -> AttendantScreen()
-                            Screen.LAYOUT -> LayoutScreen()
-                            Screen.SHARING -> SharingScreen()
-                            Screen.PRINT -> PrintScreen()
+                            Screen.EDITOR -> EditorScreen(viewModel = editorViewModel)
+                            Screen.GENERAL -> GeneralScreen(viewModel = generalViewModel)
+                            Screen.CAPTURE -> CaptureScreen(viewModel = captureViewModel)
+                            Screen.CAMERA -> CameraScreen(viewModel = cameraViewModel)
+                            Screen.ATTENDANT -> AttendantScreen(viewModel = attendantViewModel)
+                            Screen.LAYOUT -> LayoutScreen(viewModel = layoutViewModel)
+                            Screen.SHARING -> SharingScreen(viewModel = sharingViewModel)
+                            Screen.PRINT -> PrintScreen(viewModel = printViewModel)
+                            Screen.PRESETS_TEMPLATE -> org.rtakebooth.app.ui.template.TemplateEditorScreen(viewModel = templateViewModel)
                             Screen.SHARING_STATUS -> SharingStatusScreen()
                             Screen.EXPORT -> ExportScreen()
                             Screen.EVENTS -> EventListScreen()

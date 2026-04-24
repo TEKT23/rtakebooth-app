@@ -1,202 +1,169 @@
 package org.rtakebooth.app.ui.setup
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import org.rtakebooth.app.data.model.GifResolution
 import org.rtakebooth.app.ui.components.*
 import org.rtakebooth.app.viewmodel.CaptureViewModel
 
 @Composable
-fun CaptureScreen(viewModel: CaptureViewModel = remember { CaptureViewModel() }) {
+fun CaptureScreen(viewModel: CaptureViewModel) {
     val settings = viewModel.settings
-    val scrollState = rememberScrollState()
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Scrollable form content
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(scrollState)
-                    .padding(bottom = 16.dp)
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Top Bar actions (Save button)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            if (viewModel.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp).padding(end = 16.dp))
+            }
+            if (viewModel.saveMessage != null) {
+                Text(
+                    text = viewModel.saveMessage!!,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(end = 16.dp, top = 8.dp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            if (viewModel.errorMessage != null) {
+                Text(
+                    text = viewModel.errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(end = 16.dp, top = 8.dp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            Button(
+                onClick = { viewModel.saveSettings() },
+                enabled = !viewModel.isSaving
             ) {
-                // Loading indicator
-                if (viewModel.isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
+                Text(if (viewModel.isSaving) "Saving..." else "Save Settings")
+            }
+        }
 
-                // === SECTION: Capture Modes ===
+        HorizontalDivider()
+
+        // Content
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+            contentPadding = PaddingValues(vertical = 16.dp)
+        ) {
+            // === Capture Modes ===
+            item {
                 SectionHeader("Capture Modes")
-
                 ToggleRow(
-                    label = "Photo Enabled",
+                    label = "Photo Mode",
                     checked = settings.photoEnabled,
-                    onCheckedChange = {
-                        viewModel.updateSettings(settings.copy(photoEnabled = it))
-                    },
-                    description = "Standard photo capture"
+                    onCheckedChange = { viewModel.updatePhotoEnabled(it) }
                 )
-
                 ToggleRow(
-                    label = "GIF Enabled",
+                    label = "GIF Mode",
                     checked = settings.gifEnabled,
-                    onCheckedChange = {
-                        viewModel.updateSettings(settings.copy(gifEnabled = it))
-                    },
-                    description = "Animated GIF capture"
+                    onCheckedChange = { viewModel.updateGifEnabled(it) }
                 )
-
                 ToggleRow(
-                    label = "360/Slow-mo Enabled",
+                    label = "360 / Slow-mo Mode",
                     checked = settings.slowMoEnabled,
-                    onCheckedChange = {
-                        viewModel.updateSettings(settings.copy(slowMoEnabled = it))
-                    },
-                    description = "Slow motion video capture"
+                    onCheckedChange = { viewModel.updateSlowMoEnabled(it) }
                 )
-
                 ToggleRow(
-                    label = "Video Enabled",
+                    label = "Video Mode",
                     checked = settings.videoEnabled,
-                    onCheckedChange = {
-                        viewModel.updateSettings(settings.copy(videoEnabled = it))
-                    },
-                    description = "Standard video recording"
+                    onCheckedChange = { viewModel.updateVideoEnabled(it) }
                 )
+                ToggleRow(
+                    label = "Live Photo",
+                    checked = settings.livePhotoEnabled,
+                    onCheckedChange = { viewModel.updateLivePhotoEnabled(it) }
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
-                // === SECTION: Timing ===
-                SectionHeader("Timing")
+            // === Advanced Options ===
+            item {
+                SectionHeader("Advanced Options")
+                ToggleRow(
+                    label = "Advanced Retake (Backtrack)",
+                    checked = settings.advancedRetakeEnabled,
+                    onCheckedChange = { viewModel.updateAdvancedRetakeEnabled(it) }
+                )
+                Text(
+                    text = "If enabled, retaking a photo will jump back to that sequence number, discarding subsequent photos but keeping the original snapshots for backend processing.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
+            // === Timings ===
+            item {
+                SectionHeader("Timings")
                 SliderRow(
-                    label = "Delay Before First Photo",
+                    label = "Before 1st Photo",
                     value = settings.delayBeforeFirstPhoto,
-                    onValueChange = {
-                        viewModel.updateSettings(settings.copy(delayBeforeFirstPhoto = it))
-                    },
+                    onValueChange = { viewModel.updateDelayBeforeFirstPhoto(it) },
                     valueRange = 1f..10f,
                     unit = "s"
                 )
-
                 SliderRow(
-                    label = "Delay Before Other Photos",
+                    label = "Before Other Photos",
                     value = settings.delayBeforeOtherPhotos,
-                    onValueChange = {
-                        viewModel.updateSettings(settings.copy(delayBeforeOtherPhotos = it))
-                    },
-                    valueRange = 0.5f..5f,
+                    onValueChange = { viewModel.updateDelayBeforeOtherPhotos(it) },
+                    valueRange = 0.5f..10f,
                     unit = "s"
                 )
-
                 SliderRow(
                     label = "Photo Review Time",
                     value = settings.photoReviewTime,
-                    onValueChange = {
-                        viewModel.updateSettings(settings.copy(photoReviewTime = it))
-                    },
-                    valueRange = 1f..15f,
+                    onValueChange = { viewModel.updatePhotoReviewTime(it) },
+                    valueRange = 0.5f..10f,
                     unit = "s"
                 )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
-                // === SECTION: GIF Settings ===
-                SectionHeader("GIF Settings")
-
+            // === GIF & Live Photo Details ===
+            item {
+                SectionHeader("GIF & Live Photo Settings")
                 DropdownRow(
-                    label = "GIF Resolution",
-                    selectedValue = settings.gifResolution,
-                    options = listOf("Low", "Medium", "High"),
-                    onValueChange = {
-                        viewModel.updateSettings(settings.copy(gifResolution = it))
+                    label = "Resolution",
+                    selectedValue = settings.gifResolution.label,
+                    options = GifResolution.entries.map { it.label },
+                    onValueChange = { label ->
+                        GifResolution.entries.find { it.label == label }?.let {
+                            viewModel.updateGifResolution(it)
+                        }
                     }
                 )
-
                 SliderRow(
                     label = "Frame Delay",
                     value = settings.gifFrameDelay.toFloat(),
-                    onValueChange = {
-                        viewModel.updateSettings(settings.copy(gifFrameDelay = it.toInt()))
-                    },
-                    valueRange = 50f..500f,
-                    unit = "ms",
-                    steps = 45 // 10ms increments
+                    onValueChange = { viewModel.updateGifFrameDelay(it.toInt()) },
+                    valueRange = 50f..1000f,
+                    unit = "ms"
                 )
-
-                ToggleRow(
-                    label = "Reverse/Boomerang GIF",
-                    checked = settings.gifReverse,
-                    onCheckedChange = {
-                        viewModel.updateSettings(settings.copy(gifReverse = it))
-                    }
-                )
-
                 SliderRow(
-                    label = "Number of Photos",
+                    label = "Photo Count",
                     value = settings.gifPhotoCount.toFloat(),
-                    onValueChange = {
-                        viewModel.updateSettings(settings.copy(gifPhotoCount = it.toInt()))
-                    },
-                    valueRange = 2f..20f,
-                    steps = 18
+                    onValueChange = { viewModel.updateGifPhotoCount(it.toInt()) },
+                    valueRange = 2f..24f,
+                    unit = "frames"
                 )
-            }
-
-            // Bottom bar: Messages + Save button
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Status messages
-                Column(modifier = Modifier.weight(1f)) {
-                    viewModel.saveMessage?.let {
-                        Text(
-                            text = it,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    viewModel.errorMessage?.let {
-                        Text(
-                            text = it,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-
-                // Save button
-                Button(
-                    onClick = { viewModel.saveSettings() },
-                    enabled = !viewModel.isSaving
-                ) {
-                    if (viewModel.isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
-                    Text(if (viewModel.isSaving) "Saving..." else "Save Settings")
-                }
+                ToggleRow(
+                    label = "Reverse / Boomerang Effect",
+                    checked = settings.gifReverse,
+                    onCheckedChange = { viewModel.updateGifReverse(it) }
+                )
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }

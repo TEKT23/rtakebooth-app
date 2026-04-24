@@ -309,4 +309,43 @@ class SettingsRepository {
             false
         }
     }
+
+    /**
+     * GET /api/v1/templates/print
+     */
+    suspend fun getPrintTemplates(): List<org.rtakebooth.app.data.model.PrintTemplate> {
+        return try {
+            val response: ApiResponse = ApiClient.httpClient.get(
+                ApiClient.buildUrl("/api/v1/templates/print")
+            ).body()
+
+            if (response.success && response.data != null) {
+                json.decodeFromJsonElement<List<org.rtakebooth.app.data.model.PrintTemplate>>(response.data)
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            println("Error fetching print templates: ${e.message}")
+            emptyList()
+        }
+    }
+
+    /**
+     * POST /api/v1/templates/print
+     */
+    suspend fun savePrintTemplate(template: org.rtakebooth.app.data.model.PrintTemplate): Boolean {
+        return try {
+            val response: ApiResponse = ApiClient.httpClient.post(
+                ApiClient.buildUrl("/api/v1/templates/print")
+            ) {
+                contentType(ContentType.Application.Json)
+                setBody(template)
+            }.body()
+
+            response.success
+        } catch (e: Exception) {
+            println("Error saving print template: ${e.message}")
+            false
+        }
+    }
 }
