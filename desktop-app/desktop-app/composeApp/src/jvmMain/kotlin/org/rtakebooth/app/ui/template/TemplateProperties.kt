@@ -5,10 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.rtakebooth.app.data.model.CanvasElement
@@ -18,28 +22,91 @@ import org.rtakebooth.app.ui.components.TextFieldRow
 
 @Composable
 fun TemplateProperties(
+    template: org.rtakebooth.app.data.model.PrintTemplate,
     selectedElement: CanvasElement?,
     elements: List<CanvasElement>,
+    onUpdatePaperSize: (String) -> Unit,
+    onUpdateOrientation: (org.rtakebooth.app.data.model.Orientation) -> Unit,
     onUpdateElement: (String, (CanvasElement) -> CanvasElement) -> Unit
 ) {
+    var selectedTab by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0) }
+
     Surface(
-        modifier = Modifier.width(300.dp).fillMaxHeight(),
-        tonalElevation = 2.dp
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.width(320.dp).fillMaxHeight()
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            TabRow(selectedTabIndex = 0) { // Simple for now
-                Tab(selected = true, onClick = {}) { Text("Selected", modifier = Modifier.padding(12.dp)) }
-                Tab(selected = false, onClick = {}) { Text("Layers", modifier = Modifier.padding(12.dp)) }
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary,
+                indicator = { tabPositions ->
+                    if (selectedTab < tabPositions.size) {
+                        TabRowDefaults.SecondaryIndicator(
+                            Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            ) {
+                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }) { 
+                    Text("Layout", modifier = Modifier.padding(12.dp), fontSize = 12.sp, fontWeight = FontWeight.Bold) 
+                }
+                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }) { 
+                    Text("Element", modifier = Modifier.padding(12.dp), fontSize = 12.sp, fontWeight = FontWeight.Bold) 
+                }
+                Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }) { 
+                    Text("Layers", modifier = Modifier.padding(12.dp), fontSize = 12.sp, fontWeight = FontWeight.Bold) 
+                }
             }
 
-            Box(modifier = Modifier.weight(1f)) {
-                if (selectedElement != null) {
-                    SelectedProperties(selectedElement, onUpdateElement)
-                } else {
-                    LayersList(elements, onUpdateElement)
+            Box(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                when (selectedTab) {
+                    0 -> LayoutProperties(template, onUpdatePaperSize, onUpdateOrientation)
+                    1 -> {
+                        if (selectedElement != null) {
+                            SelectedProperties(selectedElement, onUpdateElement)
+                        } else {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("No element selected", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                    2 -> LayersList(elements, onUpdateElement)
                 }
             }
         }
+    }
+}
+
+@Composable
+fun LayoutProperties(
+    template: org.rtakebooth.app.data.model.PrintTemplate,
+    onUpdatePaperSize: (String) -> Unit,
+    onUpdateOrientation: (org.rtakebooth.app.data.model.Orientation) -> Unit
+) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        SectionHeader("Paper Settings")
+        
+        org.rtakebooth.app.ui.components.DropdownRow(
+            label = "Paper Size",
+            selectedValue = template.paperSize,
+            options = listOf("4x6", "4x8", "5x7", "8x10", "Custom"),
+            onValueChange = onUpdatePaperSize
+        )
+
+        org.rtakebooth.app.ui.components.RadioGroupRow(
+            label = "Orientation",
+            selectedOption = template.orientation.name,
+            options = listOf("LANDSCAPE", "PORTRAIT"),
+            onOptionSelected = { onUpdateOrientation(org.rtakebooth.app.data.model.Orientation.valueOf(it)) }
+        )
+        
+        TextFieldRow(
+            label = "Resolution (DPI)",
+            value = template.resolution.toString(),
+            onValueChange = { /* handle int conversion */ }
+        )
     }
 }
 
