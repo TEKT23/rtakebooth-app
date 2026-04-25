@@ -3,6 +3,7 @@ package org.rtakebooth.app.ui.setup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -18,130 +19,121 @@ fun CameraScreen(viewModel: CameraViewModel = remember { CameraViewModel() }) {
     val settings = viewModel.settings
     val scrollState = rememberScrollState()
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Scrollable form content
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = 800.dp)
+                .fillMaxHeight()
+                .padding(horizontal = 32.dp, vertical = 24.dp)
+        ) {
+            // Screen Title
+            Text(
+                text = "Camera Settings",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 24.dp),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            // Scrollable Content
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(scrollState)
-                    .padding(bottom = 16.dp)
             ) {
-                // Loading indicator
                 if (viewModel.isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
+                }
+
+                // Camera Section Card
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(bottom = 16.dp)) {
+                        SectionHeader("Camera")
+                        ToggleRow(
+                            label = "Webcam Enabled",
+                            checked = settings.webcamEnabled,
+                            onCheckedChange = { viewModel.updateSettings(settings.copy(webcamEnabled = it)) },
+                            description = "Enable camera input for capture"
+                        )
+                        DropdownRow(
+                            label = "Camera Source",
+                            selectedValue = settings.selectedCamera.ifEmpty { viewModel.availableCameras.firstOrNull() ?: "" },
+                            options = viewModel.availableCameras,
+                            onValueChange = { viewModel.updateSettings(settings.copy(selectedCamera = it)) }
+                        )
                     }
                 }
 
-                // === SECTION: Camera ===
-                SectionHeader("Camera")
-
-                ToggleRow(
-                    label = "Webcam Enabled",
-                    checked = settings.webcamEnabled,
-                    onCheckedChange = {
-                        viewModel.updateSettings(settings.copy(webcamEnabled = it))
-                    },
-                    description = "Enable camera input for capture"
-                )
-
-                DropdownRow(
-                    label = "Camera Source",
-                    selectedValue = settings.selectedCamera.ifEmpty { 
-                        viewModel.availableCameras.firstOrNull() ?: "" 
-                    },
-                    options = viewModel.availableCameras,
-                    onValueChange = {
-                        viewModel.updateSettings(settings.copy(selectedCamera = it))
+                // Resolution & Orientation Card
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(bottom = 16.dp)) {
+                        SectionHeader("Resolution & Orientation")
+                        RadioGroupRow(
+                            label = "Resolution Mode",
+                            selectedOption = settings.resolutionMode,
+                            options = listOf("Faster Framerate", "Higher Quality"),
+                            onOptionSelected = { viewModel.updateSettings(settings.copy(resolutionMode = it)) }
+                        )
+                        DropdownRow(
+                            label = "Rotation",
+                            selectedValue = "${settings.rotation}°",
+                            options = listOf("0°", "90°", "180°", "270°"),
+                            onValueChange = {
+                                val rotationValue = it.replace("°", "").toIntOrNull() ?: 0
+                                viewModel.updateSettings(settings.copy(rotation = rotationValue))
+                            }
+                        )
                     }
-                )
+                }
 
-                // === SECTION: Resolution & Orientation ===
-                SectionHeader("Resolution & Orientation")
-
-                RadioGroupRow(
-                    label = "Resolution Mode",
-                    selectedOption = settings.resolutionMode,
-                    options = listOf("Faster Framerate", "Higher Quality"),
-                    onOptionSelected = {
-                        viewModel.updateSettings(settings.copy(resolutionMode = it))
+                // Audio Card
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
+                ) {
+                    Column(modifier = Modifier.padding(bottom = 16.dp)) {
+                        SectionHeader("Audio")
+                        DropdownRow(
+                            label = "Microphone Source",
+                            selectedValue = settings.selectedMicrophone.ifEmpty { viewModel.availableMicrophones.firstOrNull() ?: "" },
+                            options = viewModel.availableMicrophones,
+                            onValueChange = { viewModel.updateSettings(settings.copy(selectedMicrophone = it)) }
+                        )
                     }
-                )
-
-                DropdownRow(
-                    label = "Rotation",
-                    selectedValue = "${settings.rotation}°",
-                    options = listOf("0°", "90°", "180°", "270°"),
-                    onValueChange = {
-                        val rotationValue = it.replace("°", "").toIntOrNull() ?: 0
-                        viewModel.updateSettings(settings.copy(rotation = rotationValue))
-                    }
-                )
-
-                // === SECTION: Audio ===
-                SectionHeader("Audio")
-
-                DropdownRow(
-                    label = "Microphone Source",
-                    selectedValue = settings.selectedMicrophone.ifEmpty { 
-                        viewModel.availableMicrophones.firstOrNull() ?: "" 
-                    },
-                    options = viewModel.availableMicrophones,
-                    onValueChange = {
-                        viewModel.updateSettings(settings.copy(selectedMicrophone = it))
-                    }
-                )
+                }
             }
 
             // Bottom bar: Messages + Save button
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                color = MaterialTheme.colorScheme.background
             ) {
-                // Status messages
-                Column(modifier = Modifier.weight(1f)) {
-                    viewModel.saveMessage?.let {
-                        Text(
-                            text = it,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    viewModel.errorMessage?.let {
-                        Text(
-                            text = it,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-
-                // Save button
-                Button(
-                    onClick = { viewModel.saveSettings() },
-                    enabled = !viewModel.isSaving
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (viewModel.isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        viewModel.saveMessage?.let { Text(text = it, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary) }
+                        viewModel.errorMessage?.let { Text(text = it, fontSize = 12.sp, color = MaterialTheme.colorScheme.error) }
                     }
-                    Text(if (viewModel.isSaving) "Saving..." else "Save Settings")
+
+                    Button(
+                        onClick = { viewModel.saveSettings() },
+                        enabled = !viewModel.isSaving,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        if (viewModel.isSaving) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                        Text(if (viewModel.isSaving) "Saving..." else "Save Settings")
+                    }
                 }
             }
         }

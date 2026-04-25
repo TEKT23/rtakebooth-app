@@ -3,6 +3,7 @@ package org.rtakebooth.app.ui.setup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,156 +18,125 @@ fun AttendantScreen(viewModel: AttendantViewModel = remember { AttendantViewMode
     val settings = viewModel.settings
     val scrollState = rememberScrollState()
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Scrollable form content
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = 800.dp)
+                .fillMaxHeight()
+                .padding(horizontal = 32.dp, vertical = 24.dp)
+        ) {
+            // Screen Title
+            Text(
+                text = "Attendant Settings",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 24.dp),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            // Scrollable Content
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(scrollState)
-                    .padding(bottom = 16.dp)
             ) {
-                // Loading indicator
                 if (viewModel.isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
+                }
+
+                // Voice Card
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(bottom = 16.dp)) {
+                        SectionHeader("Voice")
+                        DropdownRow(
+                            label = "Voice Style",
+                            selectedValue = settings.voiceStyle,
+                            options = listOf("American Female", "American Male", "British Female", "British Male"),
+                            onValueChange = { viewModel.updateSettings(settings.copy(voiceStyle = it)) }
+                        )
                     }
                 }
 
-                // === SECTION: Voice ===
-                SectionHeader("Voice")
-
-                DropdownRow(
-                    label = "Voice Style",
-                    selectedValue = settings.voiceStyle,
-                    options = listOf("American Female", "American Male", "British Female", "British Male"),
-                    onValueChange = {
-                        viewModel.updateSettings(settings.copy(voiceStyle = it))
+                // Start & Countdown Card
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(bottom = 16.dp)) {
+                        SectionHeader("Start & Countdown")
+                        FilePickerRow(label = "Start Screen Video", path = settings.startScreenVideo, onPathSelected = { viewModel.updateSettings(settings.copy(startScreenVideo = it)) })
+                        FilePickerRow(label = "Countdown Media", path = settings.countdownMedia, onPathSelected = { viewModel.updateSettings(settings.copy(countdownMedia = it)) })
                     }
-                )
+                }
 
-                // === SECTION: Start & Countdown ===
-                SectionHeader("Start & Countdown")
-
-                FilePickerRow(
-                    label = "Start Screen Video",
-                    path = settings.startScreenVideo,
-                    onPathSelected = {
-                        viewModel.updateSettings(settings.copy(startScreenVideo = it))
+                // Before & After Capture Card
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(bottom = 16.dp)) {
+                        SectionHeader("Before & After Capture")
+                        MultiFileListField(
+                            label = "Before Countdown Audios",
+                            files = settings.beforeCountdownAudios,
+                            onAdd = { viewModel.addBeforeCountdownAudio(it) },
+                            onRemove = { viewModel.removeBeforeCountdownAudio(it) }
+                        )
+                        ToggleRow(label = "Randomize Before Countdown", checked = settings.beforeCountdownRandomize, onCheckedChange = { viewModel.updateSettings(settings.copy(beforeCountdownRandomize = it)) })
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        MultiFileListField(
+                            label = "After Capture Audios",
+                            files = settings.afterCaptureAudios,
+                            onAdd = { viewModel.addAfterCaptureAudio(it) },
+                            onRemove = { viewModel.removeAfterCaptureAudio(it) }
+                        )
+                        ToggleRow(label = "Randomize After Capture", checked = settings.afterCaptureRandomize, onCheckedChange = { viewModel.updateSettings(settings.copy(afterCaptureRandomize = it)) })
                     }
-                )
+                }
 
-                FilePickerRow(
-                    label = "Countdown Media",
-                    path = settings.countdownMedia,
-                    onPathSelected = {
-                        viewModel.updateSettings(settings.copy(countdownMedia = it))
+                // Processing & End Card
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
+                ) {
+                    Column(modifier = Modifier.padding(bottom = 16.dp)) {
+                        SectionHeader("Processing & End")
+                        FilePickerRow(label = "Processing Audio", path = settings.processingAudio, onPathSelected = { viewModel.updateSettings(settings.copy(processingAudio = it)) })
+                        FilePickerRow(label = "End Session Audio", path = settings.endSessionAudio, onPathSelected = { viewModel.updateSettings(settings.copy(endSessionAudio = it)) })
                     }
-                )
-
-                // === SECTION: Before & After Capture ===
-                SectionHeader("Before & After Capture")
-
-                MultiFileListField(
-                    label = "Before Countdown Audios",
-                    files = settings.beforeCountdownAudios,
-                    onAdd = { viewModel.addBeforeCountdownAudio(it) },
-                    onRemove = { viewModel.removeBeforeCountdownAudio(it) }
-                )
-
-                ToggleRow(
-                    label = "Randomize Before Countdown",
-                    checked = settings.beforeCountdownRandomize,
-                    onCheckedChange = {
-                        viewModel.updateSettings(settings.copy(beforeCountdownRandomize = it))
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                MultiFileListField(
-                    label = "After Capture Audios",
-                    files = settings.afterCaptureAudios,
-                    onAdd = { viewModel.addAfterCaptureAudio(it) },
-                    onRemove = { viewModel.removeAfterCaptureAudio(it) }
-                )
-
-                ToggleRow(
-                    label = "Randomize After Capture",
-                    checked = settings.afterCaptureRandomize,
-                    onCheckedChange = {
-                        viewModel.updateSettings(settings.copy(afterCaptureRandomize = it))
-                    }
-                )
-
-                // === SECTION: Processing & End ===
-                SectionHeader("Processing & End")
-
-                FilePickerRow(
-                    label = "Processing Audio",
-                    path = settings.processingAudio,
-                    onPathSelected = {
-                        viewModel.updateSettings(settings.copy(processingAudio = it))
-                    }
-                )
-
-                FilePickerRow(
-                    label = "End Session Audio",
-                    path = settings.endSessionAudio,
-                    onPathSelected = {
-                        viewModel.updateSettings(settings.copy(endSessionAudio = it))
-                    }
-                )
+                }
             }
 
             // Bottom bar: Messages + Save button
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                color = MaterialTheme.colorScheme.background
             ) {
-                // Status messages
-                Column(modifier = Modifier.weight(1f)) {
-                    viewModel.saveMessage?.let {
-                        Text(
-                            text = it,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    viewModel.errorMessage?.let {
-                        Text(
-                            text = it,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-
-                // Save button
-                Button(
-                    onClick = { viewModel.saveSettings() },
-                    enabled = !viewModel.isSaving
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (viewModel.isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        viewModel.saveMessage?.let { Text(text = it, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary) }
+                        viewModel.errorMessage?.let { Text(text = it, fontSize = 12.sp, color = MaterialTheme.colorScheme.error) }
                     }
-                    Text(if (viewModel.isSaving) "Saving..." else "Save Settings")
+
+                    Button(
+                        onClick = { viewModel.saveSettings() },
+                        enabled = !viewModel.isSaving,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        if (viewModel.isSaving) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                        Text(if (viewModel.isSaving) "Saving..." else "Save Settings")
+                    }
                 }
             }
         }
@@ -216,7 +186,7 @@ fun MultiFileListField(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             FilePickerRow(
-                label = "", // empty label since we have a header
+                label = "", 
                 path = newFilePath,
                 onPathSelected = { newFilePath = it },
                 modifier = Modifier.weight(1f)

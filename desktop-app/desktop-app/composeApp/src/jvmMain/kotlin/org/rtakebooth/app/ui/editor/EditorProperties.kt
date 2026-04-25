@@ -28,8 +28,8 @@ fun EditorProperties(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        tonalElevation = 1.dp,
-        modifier = modifier.fillMaxHeight().width(300.dp)
+        color = MaterialTheme.colorScheme.surface,
+        modifier = modifier.fillMaxHeight().width(320.dp)
     ) {
         Column(
             modifier = Modifier
