@@ -1,10 +1,12 @@
 package org.rtakebooth.app.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -12,9 +14,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.awt.FileDialog
 import java.awt.Frame
-import java.io.File
 
 private val ROW_PADDING = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+private val DEFAULT_SHAPE = RoundedCornerShape(8.dp)
+
+@Composable
+fun formTextFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+    cursorColor = MaterialTheme.colorScheme.primary
+)
+
+@Composable
+fun formSwitchColors() = SwitchDefaults.colors(
+    checkedThumbColor = Color.White,
+    checkedTrackColor = MaterialTheme.colorScheme.primary,
+    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+    uncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+)
 
 /**
  * Section header — bold title for grouping form fields.
@@ -71,6 +91,7 @@ fun ToggleRow(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
+            colors = formSwitchColors()
         )
     }
 }
@@ -105,6 +126,8 @@ fun TextFieldRow(
             placeholder = { Text(placeholder, fontSize = 13.sp) },
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             singleLine = true,
+            shape = DEFAULT_SHAPE,
+            colors = formTextFieldColors()
         )
     }
 }
@@ -148,6 +171,11 @@ fun SliderRow(
             valueRange = valueRange,
             steps = steps,
             modifier = Modifier.fillMaxWidth(),
+            colors = SliderDefaults.colors(
+                thumbColor = Color.White,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
         )
     }
 }
@@ -181,9 +209,11 @@ fun DropdownRow(
                 onValueChange = {},
                 readOnly = true,
                 modifier = Modifier.fillMaxWidth(),
+                shape = DEFAULT_SHAPE,
+                colors = formTextFieldColors(),
                 trailingIcon = {
                     IconButton(onClick = { expanded = !expanded }) {
-                        Text(if (expanded) "▲" else "▼", fontSize = 12.sp)
+                        Text(if (expanded) "▲" else "▼", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                     }
                 },
             )
@@ -242,11 +272,12 @@ fun FilePickerRow(
                 modifier = Modifier.weight(1f),
                 placeholder = { Text("Select path...", fontSize = 13.sp) },
                 singleLine = true,
+                shape = DEFAULT_SHAPE,
+                colors = formTextFieldColors()
             )
             Button(
                 onClick = {
                     if (pickDirectory) {
-                        // Use JVM system property trick for directory selection
                         System.setProperty("apple.awt.fileDialogForDirectories", "true")
                         val dialog = FileDialog(null as Frame?, "Select Directory", FileDialog.LOAD)
                         dialog.isVisible = true
@@ -261,7 +292,8 @@ fun FilePickerRow(
                             onPathSelected(dialog.directory + dialog.file)
                         }
                     }
-                }
+                },
+                shape = DEFAULT_SHAPE
             ) {
                 Text("Browse")
             }
@@ -301,7 +333,11 @@ fun RadioGroupRow(
                 ) {
                     RadioButton(
                         selected = selectedOption == option,
-                        onClick = { onOptionSelected(option) }
+                        onClick = { onOptionSelected(option) },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = MaterialTheme.colorScheme.primary,
+                            unselectedColor = MaterialTheme.colorScheme.outline
+                        )
                     )
                     Text(
                         text = option,
@@ -336,8 +372,12 @@ fun ActionButtonRow(
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f).padding(end = 8.dp)
         )
-        OutlinedButton(onClick = onClick) {
-            Text(buttonText)
+        OutlinedButton(
+            onClick = onClick,
+            shape = DEFAULT_SHAPE,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+        ) {
+            Text(buttonText, color = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -360,6 +400,10 @@ fun CheckboxRow(
         Checkbox(
             checked = checked,
             onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = MaterialTheme.colorScheme.primary,
+                uncheckedColor = MaterialTheme.colorScheme.outline
+            )
         )
         Text(
             text = label,
@@ -398,6 +442,8 @@ fun LargeTextAreaRow(
             modifier = Modifier.fillMaxWidth(),
             minLines = minLines,
             placeholder = { Text(placeholder, fontSize = 13.sp) },
+            shape = DEFAULT_SHAPE,
+            colors = formTextFieldColors()
         )
     }
 }
